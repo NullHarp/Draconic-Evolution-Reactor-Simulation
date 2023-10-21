@@ -1,36 +1,36 @@
 #include <random>
 #include <cstdio>
+#include "Reactor.h"
 
 using namespace std;
 
-enum class ReactorState {
-    INVALID,
-    /**
-     * The reactor is offline and cold.
-     * In this state it is possible to add/remove fuel.
-     */
-     COLD,
-     /**
-      * Reactor is heating up in preparation for startup.
-      */
-      WARMING_UP,
-      //AT_TEMP(true), Dont think i need this i can just have a "Can Start" check that checks the reactor is in the warm up state and temp is at minimum required startup temp.
-      /**
-       * Reactor is online.
-       */
-       RUNNING,
-       /**
-        * The reactor is shutting down..
-        */
-        STOPPING,
-        /**
-         * The reactor is offline but is still cooling down.
-         */
-         COOLING,
-         BEYOND_HOPE
-};
-
 class Reactor {
+    public:enum class ReactorState {
+        INVALID,
+        /**
+         * The reactor is offline and cold.
+         * In this state it is possible to add/remove fuel.
+         */
+         COLD,
+         /**
+          * Reactor is heating up in preparation for startup.
+          */
+          WARMING_UP,
+          //AT_TEMP(true), Dont think i need this i can just have a "Can Start" check that checks the reactor is in the warm up state and temp is at minimum required startup temp.
+          /**
+           * Reactor is online.
+           */
+           RUNNING,
+           /**
+            * The reactor is shutting down..
+            */
+            STOPPING,
+            /**
+             * The reactor is offline but is still cooling down.
+             */
+             COOLING,
+             BEYOND_HOPE
+    };
     //region =========== Core Logic Fields ===========
 
 

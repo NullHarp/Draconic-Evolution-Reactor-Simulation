@@ -23,7 +23,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="peripheral.h">
+    <ClInclude Include="Reactor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

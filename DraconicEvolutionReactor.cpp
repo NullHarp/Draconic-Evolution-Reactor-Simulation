@@ -1,9 +1,10 @@
 // DraconicEvolutionReactor.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include "Reactor.cpp"
+#include "Reactor.h"
 #include <chrono>
 #include <cstdio>
+#include "Reactor.cpp"
 
 using namespace std;
 
@@ -55,6 +56,7 @@ int main()
 	}
 	else if (input == 2)
 	{
+		// Don't use this yet, its not finished and currently makes the reactor die.
 		mode == input;
 		printf("Using Full Custom parmaters.\n");
 		printf("Input Temperature:\n");
@@ -72,10 +74,12 @@ int main()
 		printf("\nInput Chaos:\n");
 		scanf_s("%ld", &perciseInput);
 		reactor.convertedFuel = perciseInput;
-		reactor.reactorState = ReactorState::RUNNING;
+		reactor.reactorState = Reactor::ReactorState::RUNNING;
 
 	}
 	reactor.reactableFuel = (double)fuelNuggets * 16;
+
+	// You dont have to keep anything past here, this is just an example of what a program may look like
 	reactor.attemptInitialization();
 	reactor.chargeReactor();
 	int tick = 0;
@@ -103,7 +107,7 @@ int main()
 		{
 			reactor.injectEnergy((long)3000000);
 		}
-		if (reactor.reactorState == ReactorState::RUNNING)
+		if (reactor.reactorState == Reactor::ReactorState::RUNNING)
 		{
 			if ((reactor.saturation - take) >= 0)
 			{
@@ -121,9 +125,9 @@ int main()
 			reactor.injectEnergy(give);
 		}
 
-		if (reactor.temperature > 7900)
+		if (reactor.temperature > 10000)
 		{
-			take = take - 1000;
+			take = take - 1500;
 			give = give - 1000;
 		}
 
@@ -138,42 +142,45 @@ int main()
 		{
 			reactor.shutdownReactor();
 		}
-		if (reactor.reactorState == ReactorState::BEYOND_HOPE || reactor.reactorState == ReactorState::STOPPING)
+		if (reactor.saturation > 250000000)
 		{
-			printf("NullCo. Systems | NullHarp (C)2023 | Draconic Evolution Reactor Simulation\nTemp:    %f\nShield:  %f%\nSat:     %ld%\nConFuel: %f\nFuel:    %f\nGenRate: %d\nT: %d\nH: %d\nM: %d\nS: %d\n\n", 
+			take = take + 1;
+		}
+		if (reactor.reactorState == Reactor::ReactorState::BEYOND_HOPE || reactor.reactorState == Reactor::ReactorState::STOPPING)
+		{
+			printf("NullHarp (C)2023 | Draconic Evolution Reactor Simulation\nTemp:    %f\nShield:  %f%\nSat:     %ld%\nConFuel: %f\nFuel:    %f\nGenRate: %d\nT: %d\nH: %d\nM: %d\nS: %d\n\nTake: %d Give: %d\nPeak Power: %fM\n%d iterations, %d fails, %d successes.\n\n", 
 				reactor.temperature, (reactor.shieldCharge / reactor.maxShieldCharge) * 100, 
 				reactor.saturation, reactor.convertedFuel, reactor.reactableFuel, (int)reactor.generationRate,
-				tick, ((tick / 20) / 60) / 60, ((tick / 20) / 60) % 60, (tick / 20) % 60);
-				printf("Take: %d Give: %d\n", current_take_rate, current_give_rate);
-				printf("Peak Power: %fM\n", (long)power_peak / 1e+6);
-				printf("%d iterations, %d fails, %d successes.\n\n", (failed + successful), failed, successful);
+				tick, ((tick / 20) / 60) / 60, ((tick / 20) / 60) % 60, (tick / 20) % 60, current_take_rate, current_give_rate, (long)power_peak / 1e+6, (failed + successful), failed, successful);
 		}
-		if (reactor.reactorState == ReactorState::BEYOND_HOPE)
+		if (reactor.reactorState == Reactor::ReactorState::BEYOND_HOPE)
 		{
 			failed++;
 			auto endTime = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
 			printf("Peak Power: %fM\nTotal IRL Time: %f\nSimulation FAILED, Reactor Meltdown initated\n", (long)power_peak / 1e+6, duration.count() / 1e+6);
-			//printf("Initiating new paramaters: Take: %d Give: %d\n", current_take_rate, current_give_rate);
+			printf("Initiating new paramaters: Take: %d Give: %d\n", current_take_rate, current_give_rate);
 			//printf("%d iterations, %d fails, %d successes.\n", (failed + successful), failed, successful);
 			take = initial_take;
 			give = initial_give;
 			tick = 0;
 			current_give_rate = current_give_rate + 1;
-			reactor.reactorState = ReactorState::COLD;
+			reactor.reactorState = Reactor::ReactorState::COLD;
 			reactor.convertedFuel = 0;
 			reactor.reactableFuel = (double)fuelNuggets * 16;
 			reactor.chargeReactor();
 			reactor.activateReactor();
 			//exit(23);
+			power_peak = 0;
+			last_power = 0;
 		}
-		if (reactor.reactorState == ReactorState::STOPPING)
+		if (reactor.reactorState == Reactor::ReactorState::STOPPING)
 		{
 			successful++;
 			auto endTime = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
 			printf("Peak Power: %fM\nTotal IRL Time: %f\nSimulation HALTED, Reactor Shutdown initated\n", (long)power_peak / 1e+6, duration.count() / 1e+6);
-			//printf("Initiating new paramaters: Take: %d Give: %d\n", current_take_rate, current_give_rate);
+			printf("Initiating new paramaters: Take: %d Give: %d\n", current_take_rate, current_give_rate);
 			//printf("%d iterations, %d fails, %d successes.\n",(failed +successful),failed,successful);
 			take = initial_take;
 			give = initial_give;
