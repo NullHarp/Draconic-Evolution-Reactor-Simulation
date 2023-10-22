@@ -90,6 +90,8 @@ int main()
 	int take = initial_take;
 	int give = initial_give;
 	
+	double total_power_simulation = 0;
+
 	double power_peak = 0;
 	double last_power = 0;
 
@@ -125,7 +127,7 @@ int main()
 			reactor.injectEnergy(give);
 		}
 
-		if (reactor.temperature > 10000)
+		if (reactor.temperature > 7900)
 		{
 			take = take - 1500;
 			give = give - 1000;
@@ -133,6 +135,16 @@ int main()
 
 		last_power = reactor.generationRate;
 		reactor.updateCoreLogic();
+		total_power_simulation = total_power_simulation + (reactor.generationRate - give);
+		if (total_power_simulation >= 2170000000000)
+		{
+			printf("NullHarp (C)2023 | Draconic Evolution Reactor Simulation\nTemp:    %f\nShield:  %f%\nSat:     %ld%\nConFuel: %f\nFuel:    %f\nGenRate: %d\nT: %d\nH: %d\nM: %d\nS: %d\n\nTake: %d Give: %d\nPeak Power: %fM\n%d iterations, %d fails, %d successes.\n\n",
+				reactor.temperature, (reactor.shieldCharge / reactor.maxShieldCharge) * 100,
+				reactor.saturation, reactor.convertedFuel, reactor.reactableFuel, (int)reactor.generationRate,
+				tick, ((tick / 20) / 60) / 60, ((tick / 20) / 60) % 60, (tick / 20) % 60, current_take_rate, current_give_rate, (long)power_peak / 1e+6, (failed + successful), failed, successful);
+			exit(225);
+		}
+
 		if (reactor.generationRate > last_power && reactor.generationRate > power_peak)
 		{
 			power_peak = reactor.generationRate;
@@ -153,6 +165,7 @@ int main()
 				reactor.saturation, reactor.convertedFuel, reactor.reactableFuel, (int)reactor.generationRate,
 				tick, ((tick / 20) / 60) / 60, ((tick / 20) / 60) % 60, (tick / 20) % 60, current_take_rate, current_give_rate, (long)power_peak / 1e+6, (failed + successful), failed, successful);
 		}
+		
 		if (reactor.reactorState == Reactor::ReactorState::BEYOND_HOPE)
 		{
 			failed++;
@@ -173,6 +186,7 @@ int main()
 			//exit(23);
 			power_peak = 0;
 			last_power = 0;
+			total_power_simulation = 0;
 		}
 		if (reactor.reactorState == Reactor::ReactorState::STOPPING)
 		{
@@ -185,6 +199,7 @@ int main()
 			take = initial_take;
 			give = initial_give;
 			tick = 0;
+			total_power_simulation = 0;
 
 			reactor.convertedFuel = 0;
 			reactor.reactableFuel = (double)fuelNuggets * 16;
