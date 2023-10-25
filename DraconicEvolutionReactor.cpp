@@ -1,11 +1,12 @@
 // DraconicEvolutionReactor.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include "Reactor.h"
 #include <chrono>
 #include <cstdio>
-#include "Reactor.cpp"
+#include "Reactor.h"
+#include <windows.h>
 
+using namespace rct;
 using namespace std;
 
 
@@ -98,6 +99,7 @@ int main()
 	int failed = 0;
 	int successful = 0;
 
+	bool logging = true;
 	auto startTime = std::chrono::high_resolution_clock::now();
 	while (true)
 	{
@@ -107,14 +109,11 @@ int main()
 		}
 		else
 		{
-			reactor.injectEnergy((long)3000000);
+			reactor.injectEnergy(3000000);
 		}
 		if (reactor.reactorState == Reactor::ReactorState::RUNNING)
 		{
-			if ((reactor.saturation - take) >= 0)
-			{
-				reactor.saturation = reactor.saturation - take;
-			}
+			reactor.removeEnergy(take);
 			if (reactor.shieldCharge > (double)18000000)
 			{
 				take = take + current_take_rate;
@@ -136,14 +135,6 @@ int main()
 		last_power = reactor.generationRate;
 		reactor.updateCoreLogic();
 		total_power_simulation = total_power_simulation + (reactor.generationRate - give);
-		if (total_power_simulation >= 2170000000000)
-		{
-			printf("NullHarp (C)2023 | Draconic Evolution Reactor Simulation\nTemp:    %f\nShield:  %f%\nSat:     %ld%\nConFuel: %f\nFuel:    %f\nGenRate: %d\nT: %d\nH: %d\nM: %d\nS: %d\n\nTake: %d Give: %d\nPeak Power: %fM\n%d iterations, %d fails, %d successes.\n\n",
-				reactor.temperature, (reactor.shieldCharge / reactor.maxShieldCharge) * 100,
-				reactor.saturation, reactor.convertedFuel, reactor.reactableFuel, (int)reactor.generationRate,
-				tick, ((tick / 20) / 60) / 60, ((tick / 20) / 60) % 60, (tick / 20) % 60, current_take_rate, current_give_rate, (long)power_peak / 1e+6, (failed + successful), failed, successful);
-			exit(225);
-		}
 
 		if (reactor.generationRate > last_power && reactor.generationRate > power_peak)
 		{
@@ -158,7 +149,7 @@ int main()
 		{
 			take = take + 1;
 		}
-		if (reactor.reactorState == Reactor::ReactorState::BEYOND_HOPE || reactor.reactorState == Reactor::ReactorState::STOPPING)
+		if (logging || reactor.reactorState == Reactor::ReactorState::BEYOND_HOPE || reactor.reactorState == Reactor::ReactorState::STOPPING)
 		{
 			printf("NullHarp (C)2023 | Draconic Evolution Reactor Simulation\nTemp:    %f\nShield:  %f%\nSat:     %ld%\nConFuel: %f\nFuel:    %f\nGenRate: %d\nT: %d\nH: %d\nM: %d\nS: %d\n\nTake: %d Give: %d\nPeak Power: %fM\n%d iterations, %d fails, %d successes.\n\n", 
 				reactor.temperature, (reactor.shieldCharge / reactor.maxShieldCharge) * 100, 
@@ -207,5 +198,6 @@ int main()
 			//exit(24);
 		}
 		tick++;
+		Sleep(50);
 	}
 }

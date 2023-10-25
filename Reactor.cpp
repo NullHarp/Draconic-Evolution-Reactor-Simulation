@@ -2,78 +2,12 @@
 #include <cstdio>
 #include "Reactor.h"
 
+using namespace rct;
 using namespace std;
-
-class Reactor {
-    public:enum class ReactorState {
-        INVALID,
-        /**
-         * The reactor is offline and cold.
-         * In this state it is possible to add/remove fuel.
-         */
-         COLD,
-         /**
-          * Reactor is heating up in preparation for startup.
-          */
-          WARMING_UP,
-          //AT_TEMP(true), Dont think i need this i can just have a "Can Start" check that checks the reactor is in the warm up state and temp is at minimum required startup temp.
-          /**
-           * Reactor is online.
-           */
-           RUNNING,
-           /**
-            * The reactor is shutting down..
-            */
-            STOPPING,
-            /**
-             * The reactor is offline but is still cooling down.
-             */
-             COOLING,
-             BEYOND_HOPE
-    };
-    //region =========== Core Logic Fields ===========
-
-
-
-    /**
-     * This is the current operational state of the reactor.
-     */
-    public:ReactorState reactorState = ReactorState::INVALID;
-    /**
-     * Remaining fuel that is yet to be consumed by the reaction.
-     */
-    public:double reactableFuel = 0;
-    /**
-     * Fuel that has been converted to chaos by the reaction.
-     */
-    public:double convertedFuel = 0;
-    public:double temperature = 20;
-    public:double MAX_TEMPERATURE = 10000;
-
-    public:double shieldCharge = 0;
-    public:double maxShieldCharge = 0;
-
-    /**
-     * This is how saturated the core is with energy.
-     */
-    public:long saturation = 0;
-    public:long maxSaturation = 0;
-
-
-    public:double tempDrainFactor = 0;
-    public:double generationRate = 0;
-    public:int fieldDrain = 0;
-    public:double fieldInputRate = 0;
-    public:double fuelUseRate = 0;
-
-    public:bool startupInitialized = false;
-    public:bool failSafeMode = false;
-
-    //endregion ======================================
 
     //region ################# Core Logic ##################
 
-    public:void updateCoreLogic() {
+    void Reactor::updateCoreLogic() {
         double sat;
         switch (reactorState) {
         case ReactorState::INVALID:
@@ -115,7 +49,7 @@ class Reactor {
      * This is responsible for things like returning the core temperature to minimum and draining remaining charge after the reactor shuts down.
      */
 
-    private:void updateOfflineState() {
+    void Reactor::updateOfflineState() {
         std::random_device rd;  // Seed the random number generator
         std::mt19937 gen(rd()); // Mersenne Twister engine
         std::uniform_real_distribution<double> distribution(0.0, 1.0);
@@ -140,7 +74,7 @@ class Reactor {
      * This method is fired when the reactor enters the warm up state.
      * The first time this method is fired if initializes all of the reactors key fields.
      */
-    private:void initializeStartup() {
+    void Reactor::initializeStartup() {
         if (!startupInitialized) {
             double totalFuel = reactableFuel + convertedFuel;
             maxShieldCharge = (totalFuel * 96.45061728395062 * 100);
@@ -158,7 +92,7 @@ class Reactor {
         }
     }
 
-    private:void updateOnlineState() {
+    void Reactor::updateOnlineState() {
         double coreSat = (double)saturation / (double)maxSaturation;         //1 = Max Saturation
         double negCSat = ((double)1 - coreSat) * (double)99;                                             //99 = Min Saturation. I believe this tops out at 99 because at 100 things would overflow and break.
         double temp50 = min((temperature / MAX_TEMPERATURE) * 50, (double)99);          //50 = Max Temp. Why? TBD
@@ -237,14 +171,14 @@ class Reactor {
         //endregion ======
     }
 
-    public:bool canCharge() {
+    bool Reactor::canCharge() {
         if (reactorState == ReactorState::BEYOND_HOPE) {
             return false;
         }
         return (reactorState == ReactorState::COLD || reactorState == ReactorState::COOLING) && reactableFuel + convertedFuel >= 144;
     }
 
-    public:bool canActivate() {
+    bool Reactor::canActivate() {
 
         if (reactorState == ReactorState::BEYOND_HOPE) {
             return false;
@@ -253,7 +187,7 @@ class Reactor {
         return (reactorState == ReactorState::WARMING_UP || reactorState == ReactorState::STOPPING) && temperature >= 2000 && ((saturation >= maxSaturation / 2 && shieldCharge >= maxShieldCharge / 2) || reactorState == ReactorState::STOPPING);
     }
 
-    public:bool canStop() {
+    bool Reactor::canStop() {
         if (reactorState == ReactorState::BEYOND_HOPE) {
             return false;
         }
@@ -281,28 +215,28 @@ class Reactor {
      //endregion ############################################
 
      //region ############## User Interaction ###############
-    public:void chargeReactor() {
+    void Reactor::chargeReactor() {
         if (canCharge()) {
-            //printf("Reactor: Start Charging\n");
+            printf("Reactor: Start Charging\n");
             reactorState = ReactorState::WARMING_UP;
         }
     }
 
-    public:void activateReactor() {
+    void Reactor::activateReactor() {
         if (canActivate()) {
-            //printf("Reactor: Activate\n");
+            printf("Reactor: Activate\n");
             reactorState = ReactorState::RUNNING;
         }
     }
 
-    public:void shutdownReactor() {
+    void Reactor::shutdownReactor() {
         if (canStop()) {
-            //printf("Reactor: Shutdown\n");
+            printf("Reactor: Shutdown\n");
             reactorState = ReactorState::STOPPING;
         }
     }
 
-    public:void toggleFailSafe() {
+    void Reactor::toggleFailSafe() {
         failSafeMode = !failSafeMode;
     }
 
@@ -311,7 +245,7 @@ class Reactor {
     /**
      * Will will check if the structure is valid and if so will initialize the structure.
      */
-    public:void attemptInitialization() {
+    void Reactor::attemptInitialization() {
         printf("Reactor: Attempt Initialization\n");
 
         if (reactorState == ReactorState::INVALID) {
@@ -330,7 +264,7 @@ class Reactor {
 
     //region ################# Other Logic ##################
 
-    public:long injectEnergy(long energy) {
+    long Reactor::injectEnergy(long energy) {
         long received = 0;
         if (reactorState == ReactorState::WARMING_UP) {
             if (!startupInitialized) {
@@ -372,6 +306,14 @@ class Reactor {
         }
         return received;
     }
+    void Reactor::removeEnergy(long energy)
+    {
+        if (reactorState == ReactorState::RUNNING || reactorState == ReactorState::STOPPING) {
+            if (saturation - energy > 0)
+            {
+                saturation = saturation - energy;
+            }
+        }
+    }
 
     //endregion #############################################
-};
